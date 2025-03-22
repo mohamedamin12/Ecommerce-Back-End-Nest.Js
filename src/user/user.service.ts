@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -123,4 +123,55 @@ export class UserService {
       data: user,
     };
   }
+  
+  // ===================== For User =====================
+  // User Can Get Data
+  async getMe(payload) {
+    if (!payload._id) {
+      throw new NotFoundException("User not found");
+    }
+
+    const user = await this.userModel
+      .findById(payload._id)
+      .select('-password -__v');
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    return {
+      status: 200,
+      message: "User fetched successfully",
+      data: user,
+    };
+  }
+    // User Can Update Data
+    async updateMe(payload , updateUserDto:UpdateUserDto){
+      if(payload._id){
+        throw new NotFoundException("User not found");
+      }
+      const user = await this.userModel.findById(payload._id).select('-password -__v');
+      if(!user){
+        throw new NotFoundException("User not found");
+      }
+      return {
+        message: 'User updated successfully',
+        data: await this.userModel
+        .findByIdAndUpdate(payload._id, updateUserDto, { new: true })
+        .select('-password -__v'),
+      }
+    }
+    // User Can Delete Data
+    async deleteMe(payload){
+      if(!payload._id){
+        throw new NotFoundException("User not found");
+      }
+      const user = await this.userModel.findById(payload._id).select('-password -__v');
+      if(!user){
+        throw new NotFoundException("User not found");
+      }
+      await this.userModel.findByIdAndDelete(payload._id);
+      return {
+        message: 'User deleted successfully',
+        data: user,
+      } 
+    }
 }

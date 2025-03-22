@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -42,5 +42,30 @@ export class UserController {
   @UseGuards(AuthGuard)
   remove(@Param('id') id: string) {
     return this.userService.remove(id);
+  }
+}
+
+@Controller('userMe')
+export class UserMeController {
+  constructor(private readonly userService: UserService) {}
+  @Get()
+  @Roles(['user', 'admin'])
+  @UseGuards(AuthGuard)
+  getMe(@Req() req) {
+    return this.userService.getMe(req.user);
+  }
+
+  @Patch()
+  @Roles(['user', 'admin']) 
+  @UseGuards(AuthGuard)
+  updateMe(@Req() req, @Body() updateUserDto: UpdateUserDto) {
+    return this.userService.updateMe(req.user, updateUserDto);
+  }
+
+  @Delete()
+  @Roles(['user', 'admin'])
+  @UseGuards(AuthGuard)
+  deleteMe(@Req() req) {
+    return this.userService.deleteMe(req.user);
   }
 }
