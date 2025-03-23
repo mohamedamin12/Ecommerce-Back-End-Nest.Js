@@ -25,6 +25,7 @@ export class CreateProductDto {
 
   @IsString({ message: 'imageCover Must be a String' })
   @IsUrl({}, { message: 'imageCover Must be a URL' })
+  @IsOptional()
   imageCover: string;
 
   @IsArray({ message: 'Images Must be an array' })
@@ -48,6 +49,7 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsArray({ message: 'Images Must be an array' })
+  @IsOptional()
   colors: string[];
 
   @IsString({ message: 'category Must be a String' })

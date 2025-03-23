@@ -30,7 +30,6 @@ export class Product {
   quantity: number;
   @Prop({
     type: String,
-    required: true,
   })
   imageCover: string;
   @Prop({
