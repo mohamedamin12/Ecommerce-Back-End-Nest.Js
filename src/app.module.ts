@@ -14,6 +14,7 @@ import { TaxModule } from './tax/tax.module';
 import { ProductModule } from './product/product.module';
 import { ReviewModule } from './review/review.module';
 import { CartModule } from './cart/cart.module';
+import { OrderModule } from './order/order.module';
 
 
 @Module({
@@ -45,6 +46,7 @@ import { CartModule } from './cart/cart.module';
     ProductModule,
     ReviewModule,
     CartModule,
+    OrderModule,
   ],
 
 })
