@@ -25,7 +25,6 @@ export class CreateProductDto {
 
   @IsString({ message: 'imageCover Must be a String' })
   @IsUrl({}, { message: 'imageCover Must be a URL' })
-  @IsOptional()
   imageCover: string;
 
   @IsArray({ message: 'Images Must be an array' })
@@ -45,7 +44,7 @@ export class CreateProductDto {
   @IsNumber({}, { message: 'priceAfterDiscount Must be a Number' })
   @Min(1, { message: 'priceAfterDiscount must be at least 1 L.E' })
   @Max(20000, { message: 'priceAfterDiscount must be at max 20000 L.E' })
-  priceAfterDiscount: number;
+  discount: number;
 
   @IsOptional()
   @IsArray({ message: 'Images Must be an array' })

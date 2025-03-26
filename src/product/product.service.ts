@@ -40,7 +40,7 @@ export class ProductService {
           throw new BadRequestException('This Sub Category not Exist');
         }
       }
-      const priceAfterDiscount = createProductDto?.priceAfterDiscount || 0;
+      const priceAfterDiscount = createProductDto?.discount || 0;
       if (createProductDto.price < priceAfterDiscount) {
         throw new BadRequestException(
           'Must be price After discount greater than price',
@@ -161,7 +161,7 @@ export class ProductService {
   
       const price = updateProductDto?.price || product.price;
       const priceAfterDiscount =
-        updateProductDto?.priceAfterDiscount || product.priceAfterDiscount;
+        updateProductDto?.discount || product.discount;
       if (price < priceAfterDiscount) {
         throw new BadRequestException(
           'Must be price After discount greater than price',

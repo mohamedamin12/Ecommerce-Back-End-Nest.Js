@@ -30,6 +30,7 @@ export class Product {
   quantity: number;
   @Prop({
     type: String,
+    required: true,
   })
   imageCover: string;
   @Prop({
@@ -56,7 +57,7 @@ export class Product {
     default: 0,
     max: [20000, 'Price must be at least 20000 L.E'],
   })
-  priceAfterDiscount: number;
+  discount: number;
   @Prop({
     type: Array,
     required: false,

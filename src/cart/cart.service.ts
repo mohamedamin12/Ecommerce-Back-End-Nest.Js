@@ -16,7 +16,7 @@ export class CartService {
   async create(product_id: string, user_id: string, isElse?: boolean) {
     const cart = await this.cartModule
       .findOne({ user: user_id })
-      .populate('cartItems.productId', 'price priceAfterDiscount');
+      .populate('cartItems.productId', 'price discount');
 
     const product = await this.productModule.findById(product_id);
 
@@ -43,7 +43,7 @@ export class CartService {
         // @ts-ignore
         cart.cartItems.push({ productId: product_id, color: '', quantity: 1 });
       }
-      await cart.populate('cartItems.productId', 'price priceAfterDiscount');
+      await cart.populate('cartItems.productId', 'price discount');
 
       let totalPriceAfterInsert = 0;
       let totalDiscountPriceAfterInsert = 0;
@@ -51,7 +51,7 @@ export class CartService {
       cart.cartItems.map((item) => {
         totalPriceAfterInsert += item.quantity * item.productId.price;
         totalDiscountPriceAfterInsert +=
-          item.quantity * item.productId.priceAfterDiscount;
+          item.quantity * item.productId.discount;
       });
 
       cart.totalPrice = totalPriceAfterInsert - totalDiscountPriceAfterInsert;
@@ -148,7 +148,7 @@ export class CartService {
       .findOne({ user: user_id })
       .populate(
         'cartItems.productId',
-        'price title description priceAfterDiscount _id',
+        'price title description discount _id',
       );
 
     const product = await this.productModule.findById(productId);
@@ -186,7 +186,7 @@ export class CartService {
       cart.cartItems.map((item) => {
         totalPriceAfterUpdated += item.quantity * item.productId.price;
         totalDiscountPriceAfterUpdate +=
-          item.quantity * item.productId.priceAfterDiscount;
+          item.quantity * item.productId.discount;
       });
       cart.totalPrice = totalPriceAfterUpdated - totalDiscountPriceAfterUpdate;
     }
@@ -203,7 +203,7 @@ export class CartService {
       .findOne({ user: user_id })
       .populate(
         'cartItems.productId',
-        'price title description priceAfterDiscount _id',
+        'price title description discount _id',
       );
     if (!cart) {
       throw new NotFoundException('Not Found Cart');
@@ -227,7 +227,7 @@ export class CartService {
     cart.cartItems.map((item) => {
       totalPriceAfterInsert += item.quantity * item.productId.price;
       totalDiscountPriceAfterInsert +=
-        item.quantity * item.productId.priceAfterDiscount;
+        item.quantity * item.productId.discount;
     });
 
     cart.totalPrice = totalPriceAfterInsert - totalDiscountPriceAfterInsert;
