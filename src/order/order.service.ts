@@ -38,8 +38,8 @@ export class OrderService {
     // @ts-ignore
     const shippingAddress = cart.user?.address
       ? // eslint-disable-next-line
-        // @ts-ignore
-        cart.user.address
+      // @ts-ignore
+      cart.user.address
       : createOrderDto.shippingAddress || false;
 
     if (!shippingAddress) {
@@ -68,7 +68,7 @@ export class OrderService {
         isDelivered: false,
       });
       if (data.totalOrderPrice === 0) {
-        cart.cartItems.forEach(async (item) => {
+        cart?.cartItems.forEach(async (item) => {
           await this.productModel.findByIdAndUpdate(
             item.productId,
             { $inc: { quantity: -item.quantity, sold: item.quantity } },
@@ -161,11 +161,105 @@ export class OrderService {
       throw new NotFoundException('This order not paid by cash');
     }
 
+    if (order.isPaid) {
+      throw new NotFoundException('Order already paid');
+    }
+
+    if (updateOrderDto.isPaid) {
+      updateOrderDto.paidAt = new Date();
+      const cart = await this.cartModel
+        .findOne({ user: order.user.toString() })
+        .populate('cartItems.productId user');
+      cart?.cartItems.forEach(async (item) => {
+        await this.productModel.findByIdAndUpdate(
+          item.productId,
+          { $inc: { quantity: -item.quantity, sold: item.quantity } },
+          { new: true },
+        );
+      });
+      // reset Cart
+      await this.cartModel.findOneAndUpdate(
+        { user: order.user.toString() },
+        { cartItems: [], totalPrice: 0 },
+      );
+    }
+
+    if (updateOrderDto.isDelivered) {
+      updateOrderDto.deliveredAt = new Date();
+    }
+
+    const updatedOrder = await this.orderModel.findByIdAndUpdate(
+      orderId,
+      { ...updateOrderDto },
+      { new: true },
+    );
+
+    return {
+      status: 200,
+      message: 'Order updated successfully',
+      data: updatedOrder,
+    };
+
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} order`;
+  async updatePaidCard(payload: any, sig: any, endpointSecret: string) {
+    let event;
+  
+    try {
+      event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
+    } catch (err) {
+      console.log(`Webhook Error: ${err.message}`);
+      return;
+    }
+  
+    switch (event.type) {
+      case 'checkout.session.completed':
+        const sessionId = event.data.object.id;
+  
+        const order = await this.orderModel.findOne({ sessionId });
+  
+        if (!order) {
+          console.log(`Order not found for sessionId: ${sessionId}`);
+          return;
+        }
+  
+        order.isPaid = true;
+        order.isDelivered = true; 
+        order.paidAt = new Date();
+        order.deliveredAt = new Date(); 
+  
+        const cart = await this.cartModel
+          .findOne({ user: order.user.toString() })
+          .populate('cartItems.productId user');
+  
+        if (cart) {
+          for (const item of cart.cartItems) {
+            await this.productModel.findByIdAndUpdate(
+              item.productId,
+              { $inc: { quantity: -item.quantity, sold: item.quantity } },
+              { new: true },
+            );
+          }
+  
+          await this.cartModel.findOneAndUpdate(
+            { user: order.user.toString() },
+            { cartItems: [], totalPrice: 0 },
+          );
+  
+          await cart.save();
+        }
+  
+        await order.save();
+        console.log(`Order ${order._id} marked as paid and delivered.`);
+        break;
+  
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
   }
+  
+
+
 
   update(id: number, updateOrderDto: UpdateOrderDto) {
     return `This action updates a #${id} order`;

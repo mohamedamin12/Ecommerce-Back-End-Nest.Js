@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query, UnauthorizedException, NotFoundException, Headers, RawBodyRequest } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { AcceptOrderCashDto, CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Roles } from 'src/user/decorator/roles.decorator';
 import { AuthGuard } from 'src/user/guard/Auth.guard';
+import { Request } from 'express';
+
 
 @Controller('/cart/checkout')
 export class OrderController {
@@ -62,11 +64,6 @@ export class OrderController {
     return this.orderService.updatePaidCash(orderId, updateOrderDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.orderService.findOne(+id);
-  }
-
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
     return this.orderService.update(+id, updateOrderDto);
@@ -75,5 +72,26 @@ export class OrderController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.orderService.remove(+id);
+  }
+}
+
+@Controller('checkout/session')
+export class CheckoutCardController {
+  constructor(private readonly orderService: OrderService) {}
+
+  //  @docs   Webhook paid order true auto
+  //  @Route  PATCH /api/v1/checkout/session
+  //  @access Private [Stripe]
+  @Post()
+  updatePaidCard(
+    @Headers('stripe-signature') sig,
+    @Req() request: RawBodyRequest<Request>,
+  ) {
+    const endpointSecret =
+      'whsec_67819bd58ff4b174ba2d991a4497b6e36e03717f9301cecab6ba3f53aef75db3';
+
+    const payload = request.rawBody;
+
+    return this.orderService.updatePaidCard(payload, sig, endpointSecret);
   }
 }

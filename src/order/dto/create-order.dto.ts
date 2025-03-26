@@ -14,8 +14,8 @@ export class AcceptOrderCashDto {
   paidAt: Date;
   @IsOptional()
   @IsBoolean()
-  isDeliverd: boolean;
+  isDelivered: boolean;
   @IsOptional()
   @IsDate()
-  deliverdAt: Date;
+  deliveredAt: Date;
 }
