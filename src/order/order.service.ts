@@ -259,13 +259,23 @@ export class OrderService {
   }
   
 
-
-
-  update(id: number, updateOrderDto: UpdateOrderDto) {
-    return `This action updates a #${id} order`;
+  async findAllOrdersOnUser(user_id: string) {
+    const orders = await this.orderModel.find({ user: user_id });
+    return {
+      status: 200,
+      message: 'Orders found',
+      length: orders.length,
+      data: orders,
+    };
   }
-
-  remove(id: number) {
-    return `This action removes a #${id} order`;
+  async findAllOrders() {
+    const orders = await this.orderModel.find({});
+    return {
+      status: 200,
+      message: 'Orders found',
+      length: orders.length,
+      data: orders,
+    };
   }
 }
+

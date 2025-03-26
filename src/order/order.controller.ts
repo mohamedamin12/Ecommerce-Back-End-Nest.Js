@@ -11,7 +11,6 @@ import { Request } from 'express';
 export class OrderController {
   constructor(private readonly orderService: OrderService) { }
 
-
   //  @docs   User Can Create Order and Checkout session
   //  @Route  POST /api/v1/cart/checkout/:paymentMethodType?success_url=https://ecommerce-nestjs.com&cancel_url=https://ecommerce-nestjs.com
   //  @access Private [User]
@@ -63,16 +62,6 @@ export class OrderController {
   ) {
     return this.orderService.updatePaidCash(orderId, updateOrderDto);
   }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.orderService.update(+id, updateOrderDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.orderService.remove(+id);
-  }
 }
 
 @Controller('checkout/session')
@@ -93,5 +82,48 @@ export class CheckoutCardController {
     const payload = request.rawBody;
 
     return this.orderService.updatePaidCard(payload, sig, endpointSecret);
+  }
+}
+
+@Controller('order/user')
+export class OrderForUserController {
+  constructor(private readonly orderService: OrderService) {}
+
+  //  @docs   User Can get all order
+  //  @Route  GET /api/v1/order/user
+  //  @access Private [User]
+  @Get()
+  @Roles(['user'])
+  @UseGuards(AuthGuard)
+  findAllOrdersOnUser(@Req() req) {
+    if (req.user.role.toLowerCase() === 'admin') {
+      throw new UnauthorizedException('You are not allowed to access this route');
+    }
+    const user_id = req.user._id;
+    return this.orderService.findAllOrdersOnUser(user_id);
+  }
+}
+
+@Controller('order/admin')
+export class OrderForAdminController {
+  constructor(private readonly orderService: OrderService) {}
+
+  //  @docs   Admin Can get all order
+  //  @Route  GET /api/v1/order/admin
+  //  @access Private [Admin]
+  @Get()
+  @Roles(['admin'])
+  @UseGuards(AuthGuard)
+  findAllOrders() {
+    return this.orderService.findAllOrders();
+  }
+  //  @docs   Admin Can get all order
+  //  @Route  GET /api/v1/order/admin/:userId
+  //  @access Private [Admin]
+  @Get(':userId')
+  @Roles(['admin'])
+  @UseGuards(AuthGuard)
+  findAllOrdersByUserId(@Param('userId') userId: string) {
+    return this.orderService.findAllOrdersOnUser(userId);
   }
 }
