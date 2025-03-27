@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { I18nValidationPipe } from 'nestjs-i18n';
 
 
 
@@ -17,6 +18,7 @@ async function bootstrap() {
       transform: true
     }
   ));
+  app.useGlobalPipes(new I18nValidationPipe());
   app.setGlobalPrefix("api/v1")
   await app.listen(5000);
 }

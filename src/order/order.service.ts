@@ -7,6 +7,7 @@ import { Cart } from 'src/cart/schemas/cart.schema';
 import { Tax } from 'src/tax/schemas/tax.schema';
 import { Product } from 'src/product/schemas/product.schema';
 import { Model } from 'mongoose';
+import { MailerService } from '@nestjs-modules/mailer';
 
 const stripe = require('stripe')("sk_test_51QhtvGGDL9XvsevYG6KLVpZLtwtXKgxhZrPVVwWQJY5QdVAYlz1uv4uPlg0VFx1PYeZdXZCrlCyfJexFbVLXTqPc005dj6Qxog");
 
@@ -16,7 +17,7 @@ export class OrderService {
     @InjectModel(Cart.name) private readonly cartModel: Model<Cart>,
     @InjectModel(Tax.name) private readonly taxModel: Model<Tax>,
     @InjectModel(Product.name) private readonly productModel: Model<Product>,
-    // private readonly mailService: MailerService,
+    private readonly mailService: MailerService,
   ) { }
   async create(
     user_id: string,
@@ -182,6 +183,7 @@ export class OrderService {
         { user: order.user.toString() },
         { cartItems: [], totalPrice: 0 },
       );
+
     }
 
     if (updateOrderDto.isDelivered) {
@@ -204,34 +206,34 @@ export class OrderService {
 
   async updatePaidCard(payload: any, sig: any, endpointSecret: string) {
     let event;
-  
+
     try {
       event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
     } catch (err) {
       console.log(`Webhook Error: ${err.message}`);
       return;
     }
-  
+
     switch (event.type) {
       case 'checkout.session.completed':
         const sessionId = event.data.object.id;
-  
+
         const order = await this.orderModel.findOne({ sessionId });
-  
+
         if (!order) {
           console.log(`Order not found for sessionId: ${sessionId}`);
           return;
         }
-  
+
         order.isPaid = true;
-        order.isDelivered = true; 
+        order.isDelivered = true;
         order.paidAt = new Date();
-        order.deliveredAt = new Date(); 
-  
+        order.deliveredAt = new Date();
+
         const cart = await this.cartModel
           .findOne({ user: order.user.toString() })
           .populate('cartItems.productId user');
-  
+
         if (cart) {
           for (const item of cart.cartItems) {
             await this.productModel.findByIdAndUpdate(
@@ -240,24 +242,24 @@ export class OrderService {
               { new: true },
             );
           }
-  
+
           await this.cartModel.findOneAndUpdate(
             { user: order.user.toString() },
             { cartItems: [], totalPrice: 0 },
           );
-  
+
           await cart.save();
         }
-  
+
         await order.save();
         console.log(`Order ${order._id} marked as paid and delivered.`);
         break;
-  
+
       default:
         console.log(`Unhandled event type ${event.type}`);
     }
   }
-  
+
 
   async findAllOrdersOnUser(user_id: string) {
     const orders = await this.orderModel.find({ user: user_id });
