@@ -19,6 +19,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { AcceptLanguageResolver, HeaderResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import * as path from 'path';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { OAuthModule } from './oauth/oauth.module';
 
 
 @Module({
@@ -70,6 +71,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     CartModule,
     OrderModule,
     UploadsModule,
+    OAuthModule
   ],
 
 })
